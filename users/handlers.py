@@ -1,4 +1,5 @@
-from db import firestore_db
+from utils.db import firestore_db
+from utils.response import create_response
 
 # sintaks dasar untuk menambahkan data ke firestore
 '''
@@ -21,21 +22,23 @@ def add_data(collection_name, datas):
     '''
     
     doc_ref.set(datas)
-    print("data berhasil ditambahkan")
+    return create_response(200, "berhasil menambahkan data", datas)
 
 
 def read_all_data(collection_name):
     doc_ref = firestore_db.collection(collection_name).stream()
+    datas = []
     for doc in doc_ref:
-        print(f"{doc.id} => {doc.to_dict()}")
+        datas.append(doc.to_dict())
+    return create_response(200, "berhasil get data", datas)
 
 
 def get_data_by_id(collection_name, doc_id):
     doc_ref = firestore_db.collection(collection_name).document(doc_id).get()
     if doc_ref.exists:
-        print(f"{doc_ref.id} => {doc_ref.to_dict()}")
+        return create_response(200, "berhasil get data", doc_ref.to_dict())
     else:
-        print("data tidak ditemukan")
+        return create_response(404, "data tidak ditemukan")
 
 
 def update_data(collection_name, doc_id, new_data):
@@ -49,10 +52,10 @@ def update_data(collection_name, doc_id, new_data):
     }
     '''
     doc_ref.update(new_data)
-    print("data berhasil diupdate")
+    return create_response(200, "berhasil update data", new_data)
 
 
 def delete_data(collection_name, doc_id):
     doc_ref = firestore_db.collection(collection_name).document(doc_id)
     doc_ref.delete()
-    print("data berhasil dihapus")
+    return create_response(200, "berhasil hapus data")
