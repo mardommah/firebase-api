@@ -1,0 +1,28 @@
+{% extends 'base/layout.html' %}
+
+{% block title %}Dashboard - User Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Dashboard</h4>
+            </div>
+            <div class="card-body">
+                <h5>Selamat datang, {{ session.get('user_email') }}!</h5>
+                <p class="text-muted">Anda telah berhasil login.</p>
+                <hr>
+                <div class="mt-4">
+                    <a href="/users" class="btn btn-primary me-2">
+                        <i class="bi bi-people"></i> Kelola User
+                    </a>
+                    <a href="/logout" class="btn btn-danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
