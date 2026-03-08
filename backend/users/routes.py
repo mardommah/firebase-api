@@ -1,5 +1,9 @@
-from flask import Flask, request, Blueprint, render_template, redirect, url_for, flash, session
-from users.handlers import add_data, read_all_data, update_data, get_data_by_id, delete_data, user_login, user_register
+from flask import Blueprint, render_template, redirect, url_for, flash, session, request
+from backend.users.handlers import (
+    handle_users_data, handle_manage_user, handle_my_subjects,
+    user_login, user_register
+)
+from backend.subjects.routes import admin_required
 from functools import wraps
 
 users_api = Blueprint('users_api', __name__)
@@ -22,8 +26,30 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         return user_login(email, password)
-    
     return render_template('users/login.html')
+
+
+@users_api.route('/dashboard')
+@login_required
+def dashboard():
+    if session.get('user_role') == 'admin':
+        return redirect(url_for('users_api.admin_dashboard'))
+    return redirect(url_for('users_api.user_dashboard'))
+
+
+@users_api.route('/admin/dashboard')
+@login_required
+def admin_dashboard():
+    if session.get('user_role') != 'admin':
+        flash('Akses ditolak', 'error')
+        return redirect(url_for('users_api.user_dashboard'))
+    return render_template('users/admin_dashboard.html')
+
+
+@users_api.route('/user/dashboard')
+@login_required
+def user_dashboard():
+    return render_template('users/user_dashboard.html')
 
 
 @users_api.route('/logout')
@@ -39,29 +65,25 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        
         return user_register(name, email, password, confirm_password)
-    
     return render_template('users/register.html')
 
 
 @users_api.route('/users', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def users_data():
-    if request.method == 'POST':
-        data = request.get_json()
-        # insert user data
-        return render_template('users/users.html', users=data)
-    else:
-        return render_template('users/users.html', users=read_all_data()['data'])
+    return handle_users_data()
+
 
 @users_api.route('/user/<user_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
+@admin_required
 def manage_user(user_id):
-    if request.method == 'PUT':
-        new_data = request.get_json()
-        return update_data(user_id, new_data)
-    elif request.method == 'DELETE':
-        return delete_data(user_id)
-    else:
-        return get_data_by_id( user_id)
+    return handle_manage_user(user_id)
+
+
+@users_api.route('/my-subjects', methods=['GET', 'POST'])
+@login_required
+def my_subjects():
+    return handle_my_subjects()
